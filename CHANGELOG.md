@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **(pdf): table-cell text keeps the same word spacing as the page text.** On a tight face the glyphs on either side of a source space can abut or overlap, so the word merger read the zero-or-negative gap as "one word" and fused the two — turning `corrispettivi superiori al costo` into `corrispettivisuperiori alcosto` and `d’impresa` into `d’im presa` inside table cells while the page text was correct. The word merger now honours the source whitespace as a word boundary, table words carry that source space even when their boxes touch, and the fragment re-glue band was widened so a font that kerns one word apart by more than a normal space still reassembles. (GH#1948)
+
 ## [1.3.0] - 2026-09-28
 
 ### Added

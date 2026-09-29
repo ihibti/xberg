@@ -1326,6 +1326,15 @@ impl PdfDocument {
         // must not re-decide a join the merger already made from per-glyph
         // advance evidence. ~keep
         let mut continues_prev: Vec<bool> = Vec::new();
+        // space_before[i]: word i's first glyph is immediately preceded in the
+        // source span by a whitespace character. This is the producer's own word
+        // boundary, and it outranks the geometric merge below: a space whose
+        // glyphs happen to abut or overlap their neighbours (a tight Times face at
+        // 7.83 pt in GH#1948) has a gap of zero or less, which the merge would
+        // otherwise read as "one word" and fuse. Kept parallel to `words`,
+        // surviving the merge loop, and consumed by the table path, which must
+        // re-emit the source space even when the two words' boxes touch. ~keep
+        let mut space_before: Vec<bool> = Vec::new();
         for (span_idx, span) in spans.iter().enumerate() {
             let span_chars = &all_chars[span_char_ranges[span_idx].clone()];
             if span_chars.is_empty() {
@@ -1348,6 +1357,16 @@ impl PdfDocument {
             // follows the first's highest — a dropped whitespace char (or a
             // glyph of another word) in between would occupy that index. ~keep
             let mut word_src_ranges: Vec<(usize, usize)> = Vec::new();
+            // Whether a word's first glyph is preceded by source whitespace; see
+            // `space_before`. Read from the span's own character stream so the
+            // marker reflects source order even when the clustering below visited
+            // the glyphs in a different (x-sorted) order. ~keep
+            let preceded_by_space = |lo: usize| {
+                lo > 0 && {
+                    let prev = span_chars[lo - 1].char;
+                    prev.is_whitespace() || prev == '\n' || prev == '\r'
+                }
+            };
             for cluster_indices in clusters {
                 let mut current_word_chars = Vec::new();
                 let mut src_lo = usize::MAX;
@@ -1360,6 +1379,7 @@ impl PdfDocument {
                             word.sequence = span.sequence;
                             words.push(word);
                             continues_prev.push(false);
+                            space_before.push(preceded_by_space(src_lo));
                             word_src_ranges.push((src_lo, src_hi));
                             src_lo = usize::MAX;
                             src_hi = 0;
@@ -1375,6 +1395,7 @@ impl PdfDocument {
                     word.sequence = span.sequence;
                     words.push(word);
                     continues_prev.push(false);
+                    space_before.push(preceded_by_space(src_lo));
                     word_src_ranges.push((src_lo, src_hi));
                 }
             }
@@ -1450,6 +1471,7 @@ impl PdfDocument {
             let word_rtl = crate::text::bidi::looks_rtl(&word.text);
             if !cur_rotated
                 && !prev_rotated
+                && !space_before[idx]
                 && !split_boundary_word_indices.contains(&idx)
                 && let Some(prev) = merged.last_mut()
             {
