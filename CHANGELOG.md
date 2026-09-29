@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **(transcription): a 30-second window the Whisper decoder cannot process no longer aborts the whole recording.** The greedy loop treated the decoder's 448-token context as a budget for generated tokens alone, so once a repetition loop pushed the prompt plus generated tokens past the position-embedding table, the decoder sliced an empty position range and crashed with an ONNX `Reshape` error (`Input shape:{8,0,64}`). The prompt length is now reserved from the context budget, and a window that still fails is skipped, reported as a `processing_warnings` entry, and the remaining windows are transcribed instead of the file failing. (GH#1944)
+
 ## [1.3.0] - 2026-09-28
 
 ### Added
