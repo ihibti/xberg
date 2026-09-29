@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **(ocr): a scanned table is no longer dropped when OCR reads one junk cell in a split amount column, or when its header band spans several rows.** On a scan, one right-aligned amount column splits into two adjacent columns by digit width. The fold that rejoins them ran only when every token below the first row read as a value, so one misread letter, one rule mark, or the labels of a second header row kept the column split. The leftover column then failed the sparse-column check and the whole table was lost. The fold now reads the header as the band of rows above the first row with a number, and folds a column whose values outnumber its other tokens. A text column never folds, whatever numbers it holds, and two columns that each hold a number in the same row never fold. (GH#1952)
+
 ## [1.3.0] - 2026-09-28
 
 ### Added
