@@ -343,6 +343,9 @@ packages/java/src/main/resources/natives/
 # basemind code-map index (local tooling)
 .basemind/
 
+# opencode agent scratch/config (local tooling)
+.opencode/
+
 .bench-rc32/
 .private-bench/
 build-output-musl-node/
