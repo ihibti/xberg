@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **(dbf): every row of a dBASE table now keeps its values under the headers they belong to.** Each record was read into a name-keyed `HashMap` and walked in hash order, which differs from record to record and from run to run, so a table with more than one field came back with every row's cells permuted and `metadata.format.fields` could pair a field name with another field's type. Records are now read in field-declaration order, which also keeps both values when two fields share a name instead of dropping one. (GH#1968)
+
 ## [1.3.0] - 2026-09-28
 
 ### Added
