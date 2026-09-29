@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **(ocr): a table whose rows are spaced widely no longer loses its trailing line items.** Rows spaced beyond the vertical region-gap threshold became one-row regions; with fewer than the six-word table minimum they were dropped, so an invoice kept only its header and first item. A region below the minimum now attaches to a column-aligned neighbour instead of being discarded, while genuinely separate tables — each at least the minimum size — still stay apart. (GH#1957)
+
 ## [1.3.0] - 2026-09-28
 
 ### Added
