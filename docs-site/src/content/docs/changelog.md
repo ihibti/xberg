@@ -11,9 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **(rendering): `output_format = "docx"` returns the document as a Word file.** `content` holds the `.docx` package base64-encoded and `metadata.output_format` reads `"docx"`; the CLI's `--content-format docx` writes the file itself to stdout. The package is built from the Markdown rendering after every post-processor has run, so redaction removes a term from the Word file exactly as it does from Markdown output. Headings, paragraphs, emphasis, links, nested lists, tables and code blocks carry over; images are not embedded, and chunks describe the Markdown the file was built from. Requires the `office` feature. (GH#1942)
+
 ### Fixed
 
 - **(dbf): every row of a dBASE table now keeps its values under the headers they belong to.** Each record was read into a name-keyed `HashMap` and walked in hash order, which differs from record to record and from run to run, so a table with more than one field came back with every row's cells permuted and `metadata.format.fields` could pair a field name with another field's type. Records are now read in field-declaration order, which also keeps both values when two fields share a name instead of dropping one. (GH#1968)
+- **(ocr): a scanned table whose amount column splits into two tracks is no longer dropped when OCR reads the page's rules as cells.** On a scan, one right-aligned amount column can split into two adjacent columns by digit width. The merge that rejoins them refused whenever a track held a mark read from a rule or a shaded band (`-`, a dash run, `:`, `~`), so the leftover track failed the sparse-column check and the whole table was lost. A cell with no letter or digit now counts as empty when the merge compares the two tracks, such a mark in the header band is no longer a column label, and the merged cell keeps the real amount. A sign, currency sign or bracket in front of an amount still keeps the two tracks apart, so it is never dropped. (GH#1949)
+- **(ocr): a scanned page whose text layer has no usable character map keeps the scan's segmentation mode.** Automatic OCR routing gave Tesseract block mode (PSM 6) to every page whose text layer has no usable character map, including a scan that carries such a layer over its image. On a scanned table, block mode loses the table reconstruction, so the values leave their rows. Block mode now applies only to a page without a scan raster: a page whose images cover a quarter of it or more keeps the mode a scan gets. A page of unmapped vector text still gets block mode, and an explicit caller setting still wins. (GH#1946)
 
 ## [1.3.0] - 2026-09-28
 
